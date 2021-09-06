@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Клиент на VUE</title>
+<meta charset="utf-8" />
+
+<script src="https://yastatic.net/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+<style>
+  .square{
+    float: left; 
+    border: 1px solid black;
+    width: 90px;
+    height: 90px;
+  }
+  .row-square{
+    border: none;
+    padding: 5px 0px 0px 15px;
+  }
+  .column-square{
+    border: none;
+    padding: 5px 0px 0px 25px;
+  }
+  .white{
+    background-color: white;
+  }
+  .black{
+    background-color: black;
+  }
+  .blue{
+      background-color: blue;
+  }
+  .green{
+      background-color: green;
+  }
+  .block-column{
+    position: inherit;
+    font-size: 55px;
+  }
+</style>
+  
+</head>
+<body>
+
+<div id="app">
+
+    <div class="container" style="padding-top: 50px;">
+
+            <div style="border: 1px solid black;
+            width: 930px;
+            height:900px;
+            padding: 0px 100px 0px 90px;">
+
+                <div class="block-column">
+                    <column  
+                    v-for="item in x"
+                    v-bind:item="item">
+                    </column>
+                </div> 
+
+                <!-- <div style="width: 90px;position: absolute;
+                left: 506px;
+                top: 141px; font-size: 55px;">
+                    <row  
+                    v-for="item in y"
+                    v-bind:item="item">
+                    </row>
+                </div> -->
+
+
+                    <square   
+                    v-for="item in listPositions"
+                    v-bind:key="item.key"
+                    v-bind:item="item">
+                    </square>
+
+            
+
+                  <div class="block-column">
+                    <column  
+                    v-for="item in x"
+                    v-bind:item="item">
+                    </column>
+                </div> 
+
+              
+ 
+                <div style="width: 90px;position: relative;
+                left: 720px;
+                top: -810px; font-size: 55px;">
+                    <row  
+                    v-for="item in y"
+                    v-bind:item="item">
+                    </row>
+                </div>
+               
+                                             
+            </div>      
+    </div>
+</div>
+
+<script>
+     Vue.component('square', {
+        props: {
+            item: {
+            type: Object,
+            required: true
+        },          
+    },
+    data: function () {
+        return {
+            sqr:'square',
+            white:'white',
+            black:'black',
+            select:'blue',
+            move:'green',
+            list:[]
+        }
+    },
+    mounted() {       
+    },
+    methods:{
+        getDefault(){
+            for(var i=0;i<this.$parent.listPositions.length;i++)
+            {
+                let el=this.$parent.listPositions[i];
+
+                el.isSelected=false;
+                el.isMove=false;
+            }
+        },
+        calculate(position){
+                this.getDefault();
+                position.isSelected=true;
+                x=position.value[0];
+                y=position.value[1];
+                this.calX(x,y,[-2,2]);
+                this.calY(y,x,[-2,2]);
+            },
+            calX(x, y, arrDelta, arrY){
+                let res=[];
+
+                for(var i=0;i<arrDelta.length;i++)
+                {
+                    let index=this.$parent.x.indexOf(x);
+                    let item=this.$parent.x[index+arrDelta[i]];
+
+                    if(item){
+                        res.push(item);
+                    }
+                }
+
+                if(arrY)
+                {
+                    this.addToList(res,arrY);
+                }
+                else{
+                    this.calY(y, x, [-1,1], res);
+                }
+            },
+            calY(y, x, arrDelta, arrX){
+                let res=[];
+                for(var i=0;i<arrDelta.length;i++)
+                {
+                    let index=this.$parent.y.indexOf(y);
+                    let item=this.$parent.y[index+arrDelta[i]];
+
+                    if(item){
+                        res.push(item);
+                    }
+                }
+
+                if(arrX)
+                {
+                    this.addToList(arrX,res);                 
+                }
+                else{
+                    this.calX(x, y, [-1,1], res);
+                }
+            },
+            addToList(x,y)
+            {
+                for(var i=0;i<x.length;i++)
+                    {
+                        for(var j=0;j<y.length;j++)
+                        {
+                            let item=x[i]+y[j];
+                            if(this.list.indexOf(item)<0)
+                            {
+                                let p=this.$parent.listPositions.find(x=>x.value==item);
+                                p.isMove=true;
+                            }                        
+                        }
+                    }
+            }
+    },
+    template: 
+    "<div :id='item.value' v-bind:class='[sqr,item.isSelected ? select : item.isMove ? move: item.color]' v-on:click=calculate(item)></div>"});
+
+    Vue.component('row', {
+        props: {
+            item: {
+            type: String,
+            required: true
+        },          
+    },
+    data: function () {
+        return {
+            sqr:'square',
+            row:'row-square'
+        }
+    },
+    mounted() {       
+    },
+    methods:{
+       
+    },
+    template: 
+    "<div :id='item' v-bind:class='[sqr, row]'>{{item}}</div>"});
+
+    Vue.component('column', {
+        props: {
+            item: {
+            type: String,
+            required: true
+        },          
+    },
+    data: function () {
+        return {
+            sqr:'square',
+            column:'column-square'
+        }
+    },
+    mounted() {       
+    },
+    methods:{
+       
+    },
+    template: 
+    "<div :id='item' v-bind:class='[sqr, column]'>{{item}}</div>"});
+
+
+var app=new Vue(
+        {
+        el: '#app',
+        data: {
+            x:['A','B','C','D','E','F','G','H'],
+            y:['8','7','6','5','4','3','2','1'],
+            listPositions:[],
+        },
+        mounted(){
+         this.createPositions();
+        },
+        methods:{
+            createPositions()
+            {
+                for(var i=0;i<this.y.length;i++)
+                {
+                    for(var j=0;j<this.x.length;j++)
+                    {
+                        let color=(j+i)&1?'black':'white';
+                        let el={key:this.listPositions.length, value:this.x[j]+this.y[i], color:color, isSelected:false, isMove:false};
+                        this.listPositions.push(el);
+                    }                  
+                }
+            },
+        }
+        })
+
+</script>
+</body>
+</html>

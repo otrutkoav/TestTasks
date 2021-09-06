@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Клиент на VUE</title>
+<meta charset="utf-8" />
+
+<script src="https://yastatic.net/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+<style>
+  .square{
+    float: left; 
+    border: 1px solid black;
+    width: 100px;
+    height: 100px;
+  };
+  .square-row{
+    clear: both;
+    height: 100px; 
+    width: 400px;
+  }
+  .red{
+      background-color: red;
+  }
+  .yellow{
+      background-color: yellow;
+  }
+  .blue{
+      background-color: blue;
+  }
+  .green{
+      background-color: green;
+  }
+  .pink{
+      background-color: pink;
+  }
+  .brown{
+      background-color: brown;
+  }
+  .orange{
+      background-color: orange;
+  }
+  .mediumSlateBlue{
+      background-color: mediumslateblue;
+  }
+  .white{
+    background-color: white;
+  }
+  .disabled{
+    pointer-events: none;
+  }
+</style>
+  
+</head>
+<body>
+
+<div id="app">
+
+    <div class="container" style="padding-top: 50px;">
+
+            <div style="border: 1px solid black;
+            width: 445px;
+            height: 600px;
+            padding: 20px;">
+
+                    <square   
+                    v-for="item in listPositions"
+                    v-bind:key="item.key"
+                    v-bind:item="item">
+                    </square>
+                                             
+            </div>
+                  
+            <div style="margin-top: 20px; position: relative; top: -170px; left: 20px;">
+                <!-- <timer ref="timer"></timer> -->
+                <button type="button" v-on:click='start()'>Старт</button>
+            </div>    
+ 
+       
+    </div>
+</div>
+
+<script>
+
+ Vue.component('timer',{
+    data: function () {
+        return {
+            clocktimer:{},
+            dateObj:{}, 
+            dm:'',
+            ds:'',
+            ms:'',
+            base:60,
+            timer:'00:00.000',
+            minute:1,
+            tMinute:1,
+            second:0,
+            tSecond:0,
+            millisecond:0,
+            init:0
+        }
+    },
+    mounted() {
+    },
+    methods:{
+        start(){
+            this.StartStop();
+        },
+     ClearСlock() {
+        // this.clearTimeout(this.clocktimer);
+        this.minute = 1;
+        this.tMinute = 1;
+        this.second = 0;
+        this.tSecond = 0;
+        this.millisecond = 0;
+        this.init = 0;
+        this.timer = '00:00.000';
+    },
+     StartTIME() {
+         let _this=this;
+        var cdateObj = new Date();
+        var t = (cdateObj.getTime() - _this.dateObj.getTime()) - (_this.second * 1000);
+        if (t > 999) {
+            _this.second++;
+        }
+        if (_this.second >= (_this.minute * _this.base)) {
+            _this.tSecond = 0;
+            _this.millisecond++;
+        } else 
+        {
+            _this.tSecond = parseInt((_this.millisecond / 100) + _this.second);
+            if (_this.tSecond >= _this.base) {
+                _this.tSecond = _this.tSecond - ((_this.minute - 1) * _this.base);
+            }
+        }
+
+        _this.millisecond = Math.round(t / 10);
+        if ( _this.millisecond > 99) {
+            _this.millisecond = 0;
+        }
+        if ( _this.millisecond == 0) {
+            _this.millisecond = '00';
+        }
+        if ( _this.millisecond > 0 &&  _this.millisecond <= 9) {
+            _this.millisecond = '0' +  _this.millisecond;
+        }
+        if (_this.tSecond > 0) {
+            _this.ds =  _this.tSecond;
+            if (_this.tSecond < 10) {
+                _this.ds = '0' + _this.tSecond;
+            }
+        } 
+        else
+        {
+            _this.ds = '00';
+        }
+
+        _this.dm = _this.tMinute - 1;
+        if (_this.dm > 0)
+        {
+            if (_this.dm < 10) 
+            {
+                _this.dm = '0' + _this.dm;
+            }
+        } 
+        else {
+            _this.dm = '00';
+        }
+
+        _this.timer = _this.dm + ':' + _this.ds + '.' + _this.ms;
+        _this.clocktimer = setTimeout(_this.StartTIME, 1);
+    },
+  
+    StartStop() {
+        if (this.init == 0) {
+        this.ClearСlock();
+        this.dateObj = new Date();
+        this.StartTIME();
+        this.init = 1;
+        } else {
+            // this.clearTimeout(clocktimer);
+            this.init = 0;
+        }
+    },
+    },
+    template: 
+    "<input id='timer' size=10 v-bind:value='timer' disabled>"});
+
+    Vue.component('square', {
+        props: {
+            item: {
+            type: Object,
+            required: true
+        },
+    },
+    data: function () {
+        return {
+            sqr:'square',
+            disabled:'disabled'
+        }
+    },
+    mounted() {
+    },
+    methods:{
+        click(item){
+
+        item.isOpen=true;
+
+        this.$parent.listFoundPairs.push(item);
+
+        if(this.$parent.listFoundPairs.length==2)
+        {
+            setTimeout(this.compare,300);
+        }
+
+    },
+    compare(){
+
+        let f=this.$parent.listPositions.find(x=>x.key==this.$parent.listFoundPairs[0].key);
+        let s=this.$parent.listPositions.find(x=>x.key==this.$parent.listFoundPairs[1].key);
+
+        if(f.keyColor==s.keyColor)
+        {
+           f.isBlock=true;
+           s.isBlock=true;
+           this.$parent.result++;
+        }
+        else
+        {
+            f.isOpen=false;
+            s.isOpen=false;
+        }
+        this.$parent.listFoundPairs=[];
+    },
+
+    },
+    template: 
+    "<div :id='item.key' v-bind:class='[sqr, item.isOpen ? item.color : item.defaultColor, {disabled:item.isBlock}]' v-on:click='click(item)'></div>"});
+
+    var app=new Vue(
+        {
+        el: '#app',
+        data: {
+
+            listColor:[
+                {key:1, value:'red'},
+                {key:2, value:'yellow'},
+                {key:3, value:'blue'},
+                {key:4, value:'green'},
+                {key:5, value:'pink'},
+                {key:6, value:'brown'},
+                {key:7, value:'orange'},
+                {key:8, value:'mediumSlateBlue'},
+            ],
+            listRow:[],
+            listPositions:[
+                {key:'A1',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'B1',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'C1',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'D1',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'A2',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'B2',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'C2',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'D2',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'A3',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'B3',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'C3',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'D3',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'A4',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'B4',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'C4',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+                {key:'D4',keyColor:0, color:'', defaultColor:'white', isOpen:false, isBlock:false},
+            ],
+            listFoundPairs:[],
+            result:0
+        },
+        mounted(){
+         this.create();
+        },
+        methods:{
+            getDefault(){
+                for(var i=0; i<this.listPositions.length;i++)
+                {
+                    let el=this.listPositions[i];
+                    el.keyColor=0;
+                    el.color='';
+                    el.isOpen=false;
+                    el.isBlock=false;
+                    
+                }
+            },
+            start(){
+                this.getDefault();
+                this.create();
+                // this.$refs.timer.StartStop();
+            },
+            create(){
+                let list=[];
+
+
+                for(var i=0;i<this.listPositions.length;i++)
+                {
+                    let el;
+                    do{
+                        el=this.getRandom()+1;
+                    }
+                    while(this.flag(el))
+
+                    this.listPositions[i].keyColor=el;
+                    this.listPositions[i].color=this.listColor.filter(x=>x.key==el)[0].value;
+                }               
+            },
+            getRandom(){
+                return Math.floor(Math.random()*8);
+            },
+            flag(key)
+            {
+                let len=this.listPositions.filter(x=>x.keyColor==key).length;
+
+                if(len>=2)
+                {
+                    return true;
+                }
+                else    
+                {
+                    return false;
+                }
+            }
+        },
+        watch: {
+            result:function(value){
+                if(value==8){
+                    alert("Вы выйграли");
+                }
+            }
+        }
+        })
+
+</script>
+</body>
+</html>
